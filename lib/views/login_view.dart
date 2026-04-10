@@ -58,18 +58,18 @@ class _LoginViewState extends State<LoginView> {
         children: [
           Container(
             padding: const EdgeInsets.all(24.0),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppTheme.backgroundColor, Color(0xFF1E1B4B)],
+                colors: [Theme.of(context).scaffoldBackgroundColor, const Color(0xFF1E1B4B)],
               ),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.account_balance_wallet_rounded, size: 80, color: AppTheme.primaryColor),
+                Icon(Icons.account_balance_wallet_rounded, size: 80, color: Theme.of(context).primaryColor),
                 const SizedBox(height: 16),
                 Text(
                   'O-myCash',

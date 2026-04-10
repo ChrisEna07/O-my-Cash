@@ -4,13 +4,23 @@ import 'package:provider/provider.dart';
 import 'core/supabase_config.dart';
 import 'core/app_theme.dart';
 import 'providers/finance_provider.dart';
+import 'providers/settings_provider.dart';
 import 'views/login_view.dart';
 import 'views/home_view.dart';
+import 'views/onboarding_view.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const OMyCashApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => FinanceProvider()),
+      ],
+      child: const OMyCashApp(),
+    ),
+  );
 }
 
 class OMyCashApp extends StatefulWidget {
@@ -31,19 +41,17 @@ class _OMyCashAppState extends State<OMyCashApp> {
 
   Future<void> _startApp() async {
     try {
-      // Initialize Supabase
       await Supabase.initialize(
         url: SupabaseConfig.url,
         anonKey: SupabaseConfig.anonKey,
       );
-
-      // Initialize Notifications (Non-blocking if possible, but we wait for init)
+      
       try {
         final notificationService = NotificationService();
         await notificationService.init();
         await notificationService.scheduleDailyReminder();
       } catch (e) {
-        debugPrint('Notification Init Error (ignored for startup): $e');
+        debugPrint('Notification Init Error: $e');
       }
     } catch (e) {
       debugPrint('Critical Init Error: $e');
@@ -53,19 +61,21 @@ class _OMyCashAppState extends State<OMyCashApp> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return FutureBuilder(
       future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              backgroundColor: AppTheme.backgroundColor,
-              body: const Center(
+            theme: AppTheme.getTheme(settings.primaryColor, settings.themeMode == ThemeMode.dark ? Brightness.dark : Brightness.light),
+            home: const Scaffold(
+              body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppTheme.primaryColor),
+                    CircularProgressIndicator(),
                     SizedBox(height: 24),
                     Text('Iniciando O-myCash...', style: TextStyle(color: Colors.white70)),
                   ],
@@ -78,31 +88,18 @@ class _OMyCashAppState extends State<OMyCashApp> {
         if (snapshot.hasError) {
           return MaterialApp(
             home: Scaffold(
-              backgroundColor: AppTheme.backgroundColor,
-              body: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Center(
-                  child: Text(
-                    'Error de conexión: Verifica tu internet o la configuración de Supabase.\n\n${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.redAccent),
-                  ),
-                ),
-              ),
+              body: Center(child: Text('Error de conexión: ${snapshot.error}')),
             ),
           );
         }
 
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => FinanceProvider()),
-          ],
-          child: MaterialApp(
-            title: 'O-myCash by ChrizDev',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
-            home: const AuthGate(),
-          ),
+        return MaterialApp(
+          title: 'O-myCash by ChrizDev',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.getTheme(settings.primaryColor, Brightness.light),
+          darkTheme: AppTheme.getTheme(settings.primaryColor, Brightness.dark),
+          themeMode: settings.themeMode,
+          home: settings.isFirstTime ? const OnboardingView() : const AuthGate(),
         );
       },
     );

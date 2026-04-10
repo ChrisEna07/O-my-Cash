@@ -8,6 +8,7 @@ import '../core/app_theme.dart';
 import 'transaction_form_view.dart';
 import 'savings_goals_view.dart';
 import 'profile_view.dart';
+import 'settings_view.dart';
 import '../services/supabase_service.dart';
 
 class HomeView extends StatefulWidget {
@@ -67,6 +68,10 @@ class _HomeViewState extends State<HomeView> {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(LucideIcons.settings, size: 20),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsView())),
+          ),
+          IconButton(
             icon: const Icon(LucideIcons.trash2, size: 20, color: Colors.white24),
             onPressed: () => _showAdminDialog(context),
           ),
@@ -116,11 +121,11 @@ class _HomeViewState extends State<HomeView> {
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionFormView())),
         label: const Text('Nuevo Registro'),
         icon: const Icon(LucideIcons.plus),
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: AppTheme.surfaceColor,
-        selectedItemColor: AppTheme.primaryColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.white54,
         currentIndex: 0,
         items: const [
@@ -154,15 +159,15 @@ class _BalanceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, Color(0xFF4F46E5)],
+        gradient: LinearGradient(
+          colors: [Theme.of(context).primaryColor, const Color(0xFF4F46E5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withAlpha(76), // 0.3 * 255 approx 76
+            color: Theme.of(context).primaryColor.withAlpha(76), // 0.3 * 255 approx 76
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -246,16 +251,16 @@ class _RuleStatusWidget extends StatelessWidget {
       children: [
         Text('Distribución 50/30/20', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
-        _buildRuleBar('Necesidades (50%)', provider.needsSpent, income * 0.5, Colors.blue),
+        _buildRuleBar(context, 'Necesidades (50%)', provider.needsSpent, income * 0.5, Colors.blue),
         const SizedBox(height: 12),
-        _buildRuleBar('Deseos (30%)', provider.wantsSpent, income * 0.3, Colors.orange),
+        _buildRuleBar(context, 'Deseos (30%)', provider.wantsSpent, income * 0.3, Colors.orange),
         const SizedBox(height: 12),
-        _buildRuleBar('Ahorro/Inversión (20%)', provider.savingsSpent, income * 0.2, Colors.green),
+        _buildRuleBar(context, 'Ahorro/Inversión (20%)', provider.savingsSpent, income * 0.2, Colors.green),
       ],
     );
   }
 
-  Widget _buildRuleBar(String title, double current, double limit, Color color) {
+  Widget _buildRuleBar(BuildContext context, String title, double current, double limit, Color color) {
     final percent = (current / limit).clamp(0.0, 1.0);
     final isOver = current > limit;
 
@@ -267,7 +272,7 @@ class _RuleStatusWidget extends StatelessWidget {
           children: [
             Text(title, style: const TextStyle(fontSize: 14)),
             Text('${currencyFormat.format(current)} / ${currencyFormat.format(limit)}', 
-              style: TextStyle(fontSize: 12, color: isOver ? Colors.redAccent : Colors.white60)),
+              style: TextStyle(fontSize: 12, color: isOver ? Colors.redAccent : Theme.of(context).textTheme.bodySmall?.color)),
           ],
         ),
         const SizedBox(height: 6),
@@ -276,7 +281,7 @@ class _RuleStatusWidget extends StatelessWidget {
           child: LinearProgressIndicator(
             value: percent,
             minHeight: 8,
-            backgroundColor: Colors.white10,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12,
             valueColor: AlwaysStoppedAnimation<Color>(isOver ? Colors.redAccent : color),
           ),
         ),
@@ -298,7 +303,7 @@ class _TransactionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -321,7 +326,7 @@ class _TransactionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(tx.category, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(DateFormat.MMMd().format(tx.createdAt), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(DateFormat.MMMd().format(tx.createdAt), style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 12)),
               ],
             ),
           ),
@@ -329,7 +334,7 @@ class _TransactionTile extends StatelessWidget {
             '${isIncome ? '+' : '-'}${currencyFormat.format(tx.amount)}',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isIncome ? Colors.green : Colors.white,
+              color: isIncome ? Colors.green : Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ],

@@ -87,13 +87,18 @@ class FinanceProvider extends ChangeNotifier {
   Future<void> updateAvatar(dynamic bytes, String fileName) async {
     _isLoading = true;
     _safeNotify();
-    final url = await _service.uploadAvatar(bytes, fileName);
-    if (url != null) {
-      await _service.updateProfile({'avatar_url': url});
-      _avatarUrl = url;
+    try {
+      final url = await _service.uploadAvatar(bytes, fileName);
+      if (url != null) {
+        await _service.updateProfile({'avatar_url': url});
+        _avatarUrl = url;
+      }
+    } catch (e) {
+      debugPrint('Error updating avatar: $e');
+    } finally {
+      _isLoading = false;
+      _safeNotify();
     }
-    _isLoading = false;
-    _safeNotify();
   }
 
   Future<void> updateGoal(String id, Map<String, dynamic> data) async {

@@ -38,7 +38,7 @@ class SavingsGoalsView extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddGoalDialog(context),
-        backgroundColor: AppTheme.accentColor,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         child: const Icon(LucideIcons.plus),
       ),
     );
@@ -117,7 +117,7 @@ class _GoalCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -136,14 +136,14 @@ class _GoalCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(LucideIcons.award, color: progress == 1 ? AppTheme.accentColor : Colors.white24),
+              Icon(LucideIcons.award, color: progress == 1 ? Theme.of(context).colorScheme.secondary : Colors.white24),
             ],
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(currencyFormat.format(goal.currentAmount), style: TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.bold)),
+              Text(currencyFormat.format(goal.currentAmount), style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold)),
               Text(currencyFormat.format(goal.targetAmount), style: const TextStyle(color: Colors.white54)),
             ],
           ),
@@ -154,10 +154,9 @@ class _GoalCard extends StatelessWidget {
               value: progress,
               minHeight: 12,
               backgroundColor: Colors.white10,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentColor),
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.secondary),
             ),
           ),
-          const SizedBox(height: 12),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -171,7 +170,7 @@ class _GoalCard extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(LucideIcons.trash2, size: 20, color: Colors.redAccent),
-                    onPressed: () => _showDeleteConfirm(context),
+                    onPressed: () => _showDeleteConfirm(context, goal),
                   ),
                 ],
               ),
@@ -182,7 +181,7 @@ class _GoalCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirm(BuildContext context) {
+  void _showDeleteConfirm(BuildContext context, SavingsGoalModel goal) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

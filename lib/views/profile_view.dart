@@ -56,7 +56,7 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: AppTheme.primaryColor,
+                    backgroundColor: Theme.of(context).primaryColor,
                     backgroundImage: provider.avatarUrl.isNotEmpty 
                         ? NetworkImage(provider.avatarUrl) 
                         : null,
@@ -69,7 +69,7 @@ class _ProfileViewState extends State<ProfileView> {
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Theme.of(context).primaryColor, shape: BoxShape.circle),
                       child: const Icon(LucideIcons.camera, size: 20, color: Colors.white),
                     ),
                   ),
