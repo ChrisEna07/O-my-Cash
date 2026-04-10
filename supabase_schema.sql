@@ -38,6 +38,7 @@ USING (auth.uid() = user_id);
 CREATE TABLE public.profiles (
     id uuid REFERENCES auth.users NOT NULL PRIMARY KEY,
     full_name text,
+    avatar_url text,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

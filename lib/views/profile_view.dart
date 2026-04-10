@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/finance_provider.dart';
 import '../core/app_theme.dart';
 
@@ -20,6 +21,21 @@ class _ProfileViewState extends State<ProfileView> {
     _nameController.text = context.read<FinanceProvider>().userName;
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+    
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      if (mounted) {
+        await context.read<FinanceProvider>().updateAvatar(bytes, image.name);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada con éxito')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<FinanceProvider>();
@@ -28,14 +44,37 @@ class _ProfileViewState extends State<ProfileView> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mi Perfil')),
-      body: SingleChildScrollView(
+      body: provider.isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: AppTheme.primaryColor,
-              child: Icon(LucideIcons.user, size: 50, color: Colors.white),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: AppTheme.primaryColor,
+                    backgroundImage: provider.avatarUrl.isNotEmpty 
+                        ? NetworkImage(provider.avatarUrl) 
+                        : null,
+                    child: provider.avatarUrl.isEmpty 
+                        ? const Icon(LucideIcons.user, size: 50, color: Colors.white)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.camera, size: 20, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             TextField(
@@ -44,11 +83,15 @@ class _ProfileViewState extends State<ProfileView> {
                 labelText: 'Nombre Completo',
                 prefixIcon: Icon(LucideIcons.edit3),
               ),
-              onSubmitted: (val) => provider.updateUserName(val),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => provider.updateUserName(_nameController.text),
+              onPressed: () async {
+                await provider.updateUserName(_nameController.text);
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Nombre actualizado con éxito')),
+                );
+              },
               child: const Text('Guardar Nombre'),
             ),
             const SizedBox(height: 48),

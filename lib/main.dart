@@ -10,12 +10,6 @@ import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Notifications
-  final notificationService = NotificationService();
-  await notificationService.init();
-  await notificationService.scheduleDailyReminder();
-
   runApp(const OMyCashApp());
 }
 
@@ -32,14 +26,29 @@ class _OMyCashAppState extends State<OMyCashApp> {
   @override
   void initState() {
     super.initState();
-    _initFuture = _initializeSupabase();
+    _initFuture = _startApp();
   }
 
-  Future<void> _initializeSupabase() async {
-    await Supabase.initialize(
-      url: SupabaseConfig.url,
-      anonKey: SupabaseConfig.anonKey,
-    );
+  Future<void> _startApp() async {
+    try {
+      // Initialize Supabase
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        anonKey: SupabaseConfig.anonKey,
+      );
+
+      // Initialize Notifications (Non-blocking if possible, but we wait for init)
+      try {
+        final notificationService = NotificationService();
+        await notificationService.init();
+        await notificationService.scheduleDailyReminder();
+      } catch (e) {
+        debugPrint('Notification Init Error (ignored for startup): $e');
+      }
+    } catch (e) {
+      debugPrint('Critical Init Error: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -52,7 +61,16 @@ class _OMyCashAppState extends State<OMyCashApp> {
             debugShowCheckedModeBanner: false,
             home: Scaffold(
               backgroundColor: AppTheme.backgroundColor,
-              body: const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+              body: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: AppTheme.primaryColor),
+                    SizedBox(height: 24),
+                    Text('Iniciando O-myCash...', style: TextStyle(color: Colors.white70)),
+                  ],
+                ),
+              ),
             ),
           );
         }
@@ -60,7 +78,17 @@ class _OMyCashAppState extends State<OMyCashApp> {
         if (snapshot.hasError) {
           return MaterialApp(
             home: Scaffold(
-              body: Center(child: Text('Error al inicializar: ${snapshot.error}')),
+              backgroundColor: AppTheme.backgroundColor,
+              body: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Center(
+                  child: Text(
+                    'Error de conexión: Verifica tu internet o la configuración de Supabase.\n\n${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                ),
+              ),
             ),
           );
         }
@@ -86,12 +114,15 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We check both the stream and the current session for robustness
     final currentSession = Supabase.instance.client.auth.currentSession;
 
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && currentSession == null) {
+           return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        
         final session = snapshot.hasData ? snapshot.data!.session : currentSession;
 
         if (session != null) {

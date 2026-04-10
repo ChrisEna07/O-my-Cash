@@ -158,8 +158,109 @@ class _GoalCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text('${(progress * 100).toStringAsFixed(0)}% completado', style: const TextStyle(fontSize: 12, color: Colors.white54)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${(progress * 100).toStringAsFixed(0)}% completado', style: const TextStyle(fontSize: 12, color: Colors.white54)),
+              Row(
+                children: [
+                   IconButton(
+                    icon: const Icon(LucideIcons.edit, size: 20, color: Colors.white54),
+                    onPressed: () => _showEditGoalDialog(context, goal),
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.trash2, size: 20, color: Colors.redAccent),
+                    onPressed: () => _showDeleteConfirm(context),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Meta'),
+        content: const Text('¿Estás seguro de que quieres eliminar esta meta?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () async {
+              await context.read<FinanceProvider>().deleteGoal(goal.id!);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meta eliminada')));
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditGoalDialog(BuildContext context, SavingsGoalModel goal) {
+    final nameController = TextEditingController(text: goal.goalName);
+    final amountController = TextEditingController(text: goal.targetAmount.toString());
+    DateTime? selectedDeadline = goal.deadline;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Editar Meta'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nombre de la meta')),
+              const SizedBox(height: 12),
+              TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monto objetivo')),
+              const SizedBox(height: 12),
+              ListTile(
+                title: Text(selectedDeadline == null ? 'Seleccionar Fecha Límite' : 'Meta para: ${DateFormat.yMMMd().format(selectedDeadline!)}'),
+                leading: const Icon(LucideIcons.calendar),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDeadline ?? DateTime.now().add(const Duration(days: 30)),
+                    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 3650)),
+                  );
+                  if (picked != null) {
+                    setDialogState(() => selectedDeadline = picked);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text;
+                final amount = double.tryParse(amountController.text);
+                if (name.isNotEmpty && amount != null) {
+                  await context.read<FinanceProvider>().updateGoal(goal.id!, {
+                    'goal_name': name,
+                    'target_amount': amount,
+                    'deadline': selectedDeadline?.toIso8601String(),
+                  });
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meta actualizada con éxito')));
+                  }
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
       ),
     );
   }

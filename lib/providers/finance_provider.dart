@@ -10,11 +10,13 @@ class FinanceProvider extends ChangeNotifier {
   List<TransactionModel> _transactions = [];
   List<SavingsGoalModel> _goals = [];
   String _userName = '';
+  String _avatarUrl = '';
   bool _isLoading = false;
 
   List<TransactionModel> get transactions => _transactions;
   List<SavingsGoalModel> get goals => _goals;
   String get userName => _userName;
+  String get avatarUrl => _avatarUrl;
   bool get isLoading => _isLoading;
 
   double get totalIncome => _transactions
@@ -50,6 +52,7 @@ class FinanceProvider extends ChangeNotifier {
       final profile = await _service.getProfile();
       if (profile != null) {
         _userName = profile['full_name'] ?? '';
+        _avatarUrl = profile['avatar_url'] ?? '';
       }
     } catch (e) {
       debugPrint('Error fetching data: $e');
@@ -76,10 +79,33 @@ class FinanceProvider extends ChangeNotifier {
   }
 
   Future<void> updateUserName(String name) async {
-    await _service.updateProfile(name);
+    await _service.updateProfile({'full_name': name});
     _userName = name;
     _safeNotify();
   }
+
+  Future<void> updateAvatar(dynamic bytes, String fileName) async {
+    _isLoading = true;
+    _safeNotify();
+    final url = await _service.uploadAvatar(bytes, fileName);
+    if (url != null) {
+      await _service.updateProfile({'avatar_url': url});
+      _avatarUrl = url;
+    }
+    _isLoading = false;
+    _safeNotify();
+  }
+
+  Future<void> updateGoal(String id, Map<String, dynamic> data) async {
+    await _service.updateSavingsGoal(id, data);
+    await fetchData();
+  }
+
+  Future<void> deleteGoal(String id) async {
+    await _service.deleteSavingsGoal(id);
+    await fetchData();
+  }
+
 
   Future<void> injectToGoal(String goalId, double amount) async {
     final goal = _goals.firstWhere((g) => g.id == goalId);

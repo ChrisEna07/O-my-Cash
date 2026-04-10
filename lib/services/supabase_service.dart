@@ -29,6 +29,14 @@ class SupabaseService {
     await _client.from('savings_goals').insert(goal.toJson());
   }
 
+  Future<void> updateSavingsGoal(String id, Map<String, dynamic> data) async {
+    await _client.from('savings_goals').update(data).eq('id', id);
+  }
+
+  Future<void> deleteSavingsGoal(String id) async {
+    await _client.from('savings_goals').delete().eq('id', id);
+  }
+
   Future<void> updateSavingsGoalProgress(String id, double currentAmount) async {
     await _client
         .from('savings_goals')
@@ -69,13 +77,24 @@ class SupabaseService {
     return response;
   }
 
-  Future<void> updateProfile(String fullName) async {
+  Future<void> updateProfile(Map<String, dynamic> data) async {
     final userId = currentUser?.id;
     if (userId == null) return;
     await _client.from('profiles').upsert({
       'id': userId,
-      'full_name': fullName,
+      ...data,
       'updated_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  Future<String?> uploadAvatar(dynamic fileBytes, String fileName) async {
+    final userId = currentUser?.id;
+    if (userId == null) return null;
+
+    final path = 'avatars/$userId/$fileName';
+    await _client.storage.from('fotoPerfil').uploadBinary(path, fileBytes);
+    
+    final publicUrl = _client.storage.from('fotoPerfil').getPublicUrl(path);
+    return publicUrl;
   }
 }
