@@ -5,6 +5,7 @@ import 'providers/finance_provider.dart';
 import 'providers/settings_provider.dart';
 import 'views/home_view.dart';
 import 'views/onboarding_view.dart';
+import 'views/security_view.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -81,13 +82,22 @@ class _OMyCashAppState extends State<OMyCashApp> {
           );
         }
 
+        Widget homeWidget;
+        if (settings.isFirstTime) {
+          homeWidget = const OnboardingView();
+        } else if (settings.biometricsEnabled) {
+          homeWidget = const SecurityView(authenticatedChild: HomeView());
+        } else {
+          homeWidget = const HomeView();
+        }
+
         return MaterialApp(
           title: 'O-myCash by ChrizDev',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.getTheme(settings.primaryColor, Brightness.light),
           darkTheme: AppTheme.getTheme(settings.primaryColor, Brightness.dark),
           themeMode: settings.themeMode,
-          home: settings.isFirstTime ? const OnboardingView() : const HomeView(),
+          home: homeWidget,
         );
       },
     );

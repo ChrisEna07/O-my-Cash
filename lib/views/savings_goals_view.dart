@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/finance_provider.dart';
 import '../models/savings_goal_model.dart';
 import '../core/app_theme.dart';
+import '../services/prediction_service.dart';
 
 class SavingsGoalsView extends StatelessWidget {
   const SavingsGoalsView({super.key});
@@ -21,7 +22,7 @@ class SavingsGoalsView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   Icon(LucideIcons.target, size: 64, color: Colors.white24),
+                   const Icon(LucideIcons.target, size: 64, color: Colors.white24),
                   const SizedBox(height: 16),
                   const Text('No tienes metas aún', style: TextStyle(color: Colors.white54)),
                 ],
@@ -123,7 +124,10 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<FinanceProvider>();
     final progress = (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
+    
+    final estimatedDate = PredictionService.estimateCompletionDate(goal, provider.transactions);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -151,6 +155,31 @@ class _GoalCard extends StatelessWidget {
               Icon(LucideIcons.award, color: progress == 1 ? Theme.of(context).colorScheme.secondary : Colors.white24),
             ],
           ),
+          if (estimatedDate != null && progress < 1) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.sparkles, size: 14, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Predicción: ${DateFormat.yMMMd().format(estimatedDate)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -14,6 +14,12 @@ class L10n {
       'success_export': 'Respaldo exportado con éxito',
       'success_import': 'Datos restaurados con éxito',
       'error': 'Ocurrió un error',
+      'security': 'Seguridad',
+      'biometrics': 'Bloqueo Biométrico',
+      'cloud_sync': 'Sincronización en la Nube',
+      'sync_drive': 'Sincronizar con Google Drive',
+      'sync_success': 'Sincronización completada con éxito',
+      'sync_error': 'Error al sincronizar con la nube',
     },
     'en': {
       'settings': 'Settings',
@@ -29,6 +35,12 @@ class L10n {
       'success_export': 'Backup exported successfully',
       'success_import': 'Data restored successfully',
       'error': 'An error occurred',
+      'security': 'Security',
+      'biometrics': 'Biometric Lock',
+      'cloud_sync': 'Cloud Synchronization',
+      'sync_drive': 'Sync with Google Drive',
+      'sync_success': 'Synchronization completed successfully',
+      'sync_error': 'Error syncing with cloud',
     }
   };
 

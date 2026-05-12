@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "573825219942",
+    "project_id": "omychas",
+    "storage_bucket": "omychas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:573825219942:android:fddd578c0a41da719a9ca7",
+        "android_client_info": {
+          "package_name": "com.chrizdev.o_my_cash"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBifHr9GTy3e0iLjwbMiW3UUzw4FiLrBas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

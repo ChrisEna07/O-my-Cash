@@ -1,110 +1,74 @@
-# 💰 O-myCash - Gestión Financiera Inteligente
+# 💰 O-myCash - Gestión Financiera con IA & Seguridad Avanzada
 
 ![O-myCash Banner](screenshots/banner.png)
 
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev/)
-[![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev/)
-[![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![SQLite](https://img.shields.io/badge/SQLCipher-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.zetetic.net/sqlcipher/)
+[![Google Drive](https://img.shields.io/badge/Google%20Drive-%234285F4.svg?style=for-the-badge&logo=googledrive&logoColor=white)](https://www.google.com/drive/)
+[![ML Kit](https://img.shields.io/badge/Google%20ML%20Kit-%23FBBC05.svg?style=for-the-badge&logo=google&logoColor=white)](https://developers.google.com/ml-kit)
 
-**O-myCash** es una solución premium de gestión financiera personal diseñada para usuarios que buscan simplicidad, elegancia y control total. Basada en la reconocida **Regla 50/30/20**, esta aplicación te permite transformar tus hábitos financieros de manera intuitiva y visual, ahora con un enfoque **100% offline y privado**.
-
----
-
-## 🌟 Características Destacadas
-
-### 📊 Metodología 50/30/20
-Administra tus finanzas automáticamente dividiendo tus ingresos netos en categorías inteligentes:
-*   **50% Necesidades**: Vivienda, alimentación, servicios y transporte.
-*   **30% Deseos**: Entretenimiento, moda, restaurantes y gustos personales.
-*   **20% Ahorro e Inversión**: Construcción de capital y fondo de emergencia.
-
-### 🎯 Gestión de Metas de Ahorro
-*   **Visualización de Progreso**: Gráficos interactivos que muestran cuánto te falta para alcanzar tus sueños.
-*   **Inyección Directa de Capital**: Asigna excedentes de tus ingresos directamente a metas específicas.
-*   **Notificaciones de Logro**: Celebra cada hito alcanzado con animaciones y notificaciones integradas.
-
-### 🧠 Inteligencia y Coaching
-*   **Feedback en Tiempo Real**: La app analiza tu gasto y te ofrece consejos personalizados.
-*   **Tips de Economía**: Si excedes tus límites, recibe sugerencias prácticas para retomar el rumbo.
-*   **Dashboard Dinámico**: Resumen visual inmediato de tu salud financiera.
-
-### 🔒 Privacidad y Rendimiento
-*   **Offline First**: Tus datos financieros nunca salen de tu dispositivo. Almacenamiento local ultrarrápido con SQLite.
-*   **Exportación de Reportes**: Genera documentos PDF detallados de tus movimientos y metas.
-*   **Seguridad Local**: Persistencia de datos segura y acceso instantáneo sin necesidad de internet.
+**O-myCash** es una solución financiera de élite diseñada para quienes no comprometen ni su seguridad ni su tiempo. Combinando la **Regla 50/30/20** con **Inteligencia Artificial** y **Seguridad de Grado Militar**, esta app redefine el control de tus finanzas personales.
 
 ---
 
-## 📸 Interfaz de Usuario
+## 🚀 Innovaciones Tecnológicas
+
+### 👁️ Escaneo de Recibos con IA (OCR)
+Olvida el registro manual. Con el motor de **Google ML Kit**, puedes tomar una foto a cualquier ticket de compra y O-myCash extraerá automáticamente:
+*   El monto total de la compra.
+*   Una sugerencia de categoría basada en el comercio.
+
+### 🧠 Inteligencia de Ahorro y Predicciones
+*   **Predictor de Metas**: Nuestro algoritmo analiza tu ritmo de ahorro real para darte una fecha estimada de cumplimiento de tus sueños.
+*   **Smart Coaching**: Recibe consejos financieros contextuales (Smart Tips) basados en si estás respetando tus límites de gastos fijos y deseos.
+
+### 🔒 Seguridad de Grado Militar
+Tus datos son solo tuyos. Hemos implementado capas de seguridad robustas:
+*   **Encriptación SQLCipher**: La base de datos local está cifrada con AES-256. Nadie puede leer tu información sin la llave única de tu dispositivo.
+*   **Acceso Biométrico**: Protege la entrada a la app con tu huella dactilar o reconocimiento facial (FaceID/Biometría).
+
+### ☁️ Sincronización Privada en la Nube
+*   **Google Drive Sync**: Respalda y restaura tus datos utilizando tu propia cuenta de Google.
+*   **Carpeta Privada (App Data)**: Los respaldos se guardan en una zona oculta y segura de tu Drive, inaccesible para otras aplicaciones.
+
+---
+
+## 🌟 Características Clásicas Mejoradas
+*   **Distribución 50/30/20 Personalizable**: Ajusta los porcentajes de necesidades, deseos y ahorro según tu estilo de vida.
+*   **Dashboard Dinámico**: Visualización interactiva de tu balance y salud financiera.
+*   **Reportes PDF**: Genera resúmenes profesionales de tus movimientos.
+*   **Offline First**: Funciona perfectamente sin internet, priorizando tu privacidad.
+
+---
+
+## 📸 Interfaz de Usuario Premium
 
 <table style="width: 100%; border: none;">
   <tr>
-    <td align="center" width="33%"><img src="screenshots/pantalla de inicio.png" width="250px"/><br/><b>Dashboard Principal</b></td>
-    <td align="center" width="33%"><img src="screenshots/pantalla de gastos.png" width="250px"/><br/><b>Control de Gastos</b></td>
-    <td align="center" width="33%"><img src="screenshots/pantalla para agregar ingresos.png" width="250px"/><br/><b>Registro de Ingresos</b></td>
-  </tr>
-  <tr>
-    <td align="center" width="33%"><img src="screenshots/pantalla crear meta.png" width="250px"/><br/><b>Metas de Ahorro</b></td>
-    <td align="center" width="33%"><img src="screenshots/pantall de perfil.png" width="250px"/><br/><b>Perfil de Usuario</b></td>
-    <td align="center" width="33%"><img src="screenshots/pantalla de ajustes.png" width="250px"/><br/><b>Configuración</b></td>
+    <td align="center" width="33%"><img src="screenshots/pantalla de inicio.png" width="250px"/><br/><b>Dashboard con Smart Tips</b></td>
+    <td align="center" width="33%"><img src="screenshots/pantalla de gastos.png" width="250px"/><br/><b>Control Encriptado</b></td>
+    <td align="center" width="33%"><img src="screenshots/pantalla para agregar ingresos.png" width="250px"/><br/><b>OCR Ready</b></td>
   </tr>
 </table>
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Stack Tecnológico de Vanguardia
 
-*   **Framework**: [Flutter](https://flutter.dev) (UI Premium & Multiplataforma)
-*   **Lenguaje**: [Dart](https://dart.dev)
-*   **Base de Datos**: [SQLite](https://pub.dev/packages/sqflite) (Persistencia robusta local)
-*   **Gestión de Estado**: [Provider](https://pub.dev/packages/provider)
-*   **Visualización de Datos**: [FL Chart](https://pub.dev/packages/fl_chart)
-*   **Iconografía**: [Lucide Icons](https://lucide.dev)
-*   **Reportes**: [PDF](https://pub.dev/packages/pdf) & [Printing](https://pub.dev/packages/printing)
-*   **Diseño**: Google Fonts (Outfit), Animaciones fluidas, Shimmer effects.
-
----
-
-## 🚀 Instalación y Uso
-
-1.  **Clonar el repositorio**:
-    ```bash
-    git clone https://github.com/ChrisEna07/O-my-Cash.git
-    ```
-
-2.  **Instalar dependencias**:
-    ```bash
-    flutter pub get
-    ```
-
-3.  **Configurar activos**:
-    Asegúrate de que las imágenes en `assets/` estén correctamente referenciadas en el `pubspec.yaml` (si las hay).
-
-4.  **Ejecutar la aplicación**:
-    ```bash
-    flutter run
-    ```
-
----
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas! Si tienes ideas para mejorar la lógica del coach financiero o nuevas visualizaciones:
-
-1.  Haz un Fork del proyecto.
-2.  Crea una nueva rama (`git checkout -b feature/NuevaFuncionalidad`).
-3.  Realiza tus cambios y haz Commit (`git commit -m 'Añade funcionalidad'`).
-4.  Sube tus cambios (`git push origin feature/NuevaFuncionalidad`).
-5.  Abre un Pull Request.
+*   **IA & Vision**: [Google ML Kit](https://developers.google.com/ml-kit) (Reconocimiento de Texto).
+*   **Seguridad**: [SQLCipher](https://www.zetetic.net/sqlcipher/) & [Local Auth](https://pub.dev/packages/local_auth).
+*   **Almacenamiento Seguro**: [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage).
+*   **Cloud**: [Google Drive API](https://developers.google.com/drive).
+*   **Framework**: Flutter (UI Premium & Multiplataforma).
+*   **Visualización**: FL Chart & Lucide Icons.
 
 ---
 
 ## 👨‍💻 Desarrollador
 
-**ChrizDev** - *Elegancia y Precisión en Software Financiero*
+**ChrizDev** - *Ingeniería de Software con Propósito y Elegancia*
 
 [![Github](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ChrisEna07)
 
 ---
-*Este proyecto está diseñado para empoderar a las personas a tomar el control de su futuro financiero con herramientas de clase mundial.*
+*O-myCash no es solo una app, es tu nuevo cerebro financiero inteligente.*

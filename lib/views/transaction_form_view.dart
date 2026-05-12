@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/finance_provider.dart';
 import '../models/transaction_model.dart';
 import '../core/app_theme.dart';
+import '../services/ocr_service.dart';
 
 class TransactionFormView extends StatefulWidget {
   const TransactionFormView({super.key});
@@ -27,6 +29,54 @@ class _TransactionFormViewState extends State<TransactionFormView> {
     'want': ['Ocio', 'Ropa', 'Calzado', 'Restaurantes', 'Otro'],
     'save': ['Ahorro Directo', 'Inversión', 'Fondo Emergencia'],
   };
+
+  final _ocrService = OCRService();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _otherCategoryController.dispose();
+    _descriptionController.dispose();
+    _ocrService.dispose();
+    super.dispose();
+  }
+
+  Future<void> _scanReceipt() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+    if (image == null) return;
+
+    setState(() => _isLoading = true);
+    
+    final result = await _ocrService.scanReceipt(image.path);
+    
+    if (result != null) {
+      setState(() {
+        _amountController.text = result['amount'].toString();
+        _type = TransactionType.expense;
+        
+        // Intentar mapear categoría sugerida
+        String cat = result['category'];
+        if (_categoriesByRule['need']!.contains(cat)) {
+          _ruleCategory = RuleCategory.need;
+          _category = cat;
+        } else if (_categoriesByRule['want']!.contains(cat)) {
+          _ruleCategory = RuleCategory.want;
+          _category = cat;
+        } else {
+          _ruleCategory = RuleCategory.want;
+          _category = 'Otro';
+          _otherCategoryController.text = cat;
+        }
+      });
+      if (mounted) AppTheme.showCustomSnackBar(context, 'Ticket escaneado con éxito');
+    } else {
+      if (mounted) AppTheme.showCustomSnackBar(context, 'No se pudo leer el monto del ticket', isError: true);
+    }
+    
+    setState(() => _isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,14 +117,27 @@ class _TransactionFormViewState extends State<TransactionFormView> {
               ],
             ),
             const SizedBox(height: 24),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
-                labelText: 'Monto',
-                prefixIcon: Icon(LucideIcons.dollarSign),
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    decoration: const InputDecoration(
+                      labelText: 'Monto',
+                      prefixIcon: Icon(LucideIcons.dollarSign),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton.filled(
+                  onPressed: _isLoading ? null : _scanReceipt,
+                  icon: const Icon(LucideIcons.scan),
+                  tooltip: 'Escanea tu ticket',
+                ),
+              ],
             ),
             if (_type == TransactionType.income) ...[
                const SizedBox(height: 24),

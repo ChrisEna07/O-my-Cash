@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/finance_provider.dart';
+import '../providers/settings_provider.dart';
 import '../models/transaction_model.dart';
 import '../core/app_theme.dart';
 import 'transaction_form_view.dart';
 import 'savings_goals_view.dart';
 import 'profile_view.dart';
 import 'settings_view.dart';
+import '../services/prediction_service.dart';
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -61,6 +63,8 @@ class _HomeViewState extends State<HomeView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                    _BalanceCard(currencyFormat: currencyFormat, provider: provider),
+                  const SizedBox(height: 24),
+                  _SmartTipCard(provider: provider),
                   const SizedBox(height: 24),
                   _RuleStatusWidget(provider: provider, currencyFormat: currencyFormat),
                   const SizedBox(height: 32),
@@ -204,6 +208,46 @@ class _BalanceInfo extends StatelessWidget {
   }
 }
 
+class _SmartTipCard extends StatelessWidget {
+  final FinanceProvider provider;
+  const _SmartTipCard({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+    final income = provider.totalIncome == 0 ? 1.0 : provider.totalIncome;
+
+    final tip = PredictionService.getSmartTip(
+      needsLimit: income * settings.needsPercent,
+      wantsLimit: income * settings.wantsPercent,
+      actualNeeds: provider.needsSpent,
+      actualWants: provider.wantsSpent,
+      lang: settings.languageCode,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Icon(LucideIcons.lightbulb, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              tip,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RuleStatusWidget extends StatelessWidget {
   final FinanceProvider provider;
   final NumberFormat currencyFormat;
@@ -212,18 +256,19 @@ class _RuleStatusWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     final income = provider.totalIncome == 0 ? 1.0 : provider.totalIncome;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Distribución 50/30/20', style: Theme.of(context).textTheme.titleLarge),
+        Text('Distribución Actual', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
-        _buildRuleBar(context, 'Necesidades (50%)', provider.needsSpent, income * 0.5, Colors.blue),
+        _buildRuleBar(context, 'Necesidades (${(settings.needsPercent * 100).toInt()}%)', provider.needsSpent, income * settings.needsPercent, Colors.blue),
         const SizedBox(height: 12),
-        _buildRuleBar(context, 'Deseos (30%)', provider.wantsSpent, income * 0.3, Colors.orange),
+        _buildRuleBar(context, 'Deseos (${(settings.wantsPercent * 100).toInt()}%)', provider.wantsSpent, income * settings.wantsPercent, Colors.orange),
         const SizedBox(height: 12),
-        _buildRuleBar(context, 'Ahorro/Inversión (20%)', provider.savingsSpent, income * 0.2, Colors.green),
+        _buildRuleBar(context, 'Ahorro/Inversión (${(settings.savingsPercent * 100).toInt()}%)', provider.savingsSpent, income * settings.savingsPercent, Colors.green),
       ],
     );
   }

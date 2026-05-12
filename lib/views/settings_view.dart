@@ -8,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/finance_provider.dart';
 import '../services/local_database_service.dart';
+import '../services/security_service.dart';
+import '../services/google_drive_service.dart';
 import '../services/pdf_service.dart';
 import '../core/app_theme.dart';
 import '../core/localization.dart';
@@ -74,6 +76,75 @@ class SettingsView extends StatelessWidget {
             ],
           ),
           
+          const SizedBox(height: 32),
+          _SectionTitle(title: L10n.tr(lang, 'security')),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            secondary: const Icon(LucideIcons.fingerprint, color: Colors.greenAccent),
+            title: Text(L10n.tr(lang, 'biometrics')),
+            subtitle: const Text('Bloquea el acceso a la app con tu huella o rostro', style: TextStyle(fontSize: 12, color: Colors.white38)),
+            value: settings.biometricsEnabled,
+            onChanged: (bool value) async {
+              if (value) {
+                // Verificar si el dispositivo soporta biometría antes de activar
+                final canCheck = await SecurityService().canCheckBiometrics();
+                if (!canCheck) {
+                  if (context.mounted) {
+                    AppTheme.showCustomSnackBar(context, 'Tu dispositivo no soporta biometría', isError: true);
+                  }
+                  return;
+                }
+              }
+              settings.setBiometrics(value);
+            },
+          ),
+          
+          const SizedBox(height: 32),
+          _SectionTitle(title: L10n.tr(lang, 'cloud_sync')),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const Icon(LucideIcons.uploadCloud, color: Colors.blueAccent),
+            title: Text(L10n.tr(lang, 'sync_drive')),
+            subtitle: const Text('Guarda tus datos en tu cuenta de Google Drive', style: TextStyle(fontSize: 12, color: Colors.white38)),
+            onTap: () async {
+              try {
+                final driveService = GoogleDriveService();
+                final user = await driveService.signIn();
+                if (user != null) {
+                  final jsonStr = await LocalDatabaseService().exportDataToJson();
+                  final success = await driveService.uploadBackup(jsonStr);
+                  if (context.mounted) {
+                    AppTheme.showCustomSnackBar(context, success ? L10n.tr(lang, 'sync_success') : L10n.tr(lang, 'sync_error'), isError: !success);
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) AppTheme.showCustomSnackBar(context, L10n.tr(lang, 'sync_error'), isError: true);
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(LucideIcons.downloadCloud, color: Colors.greenAccent),
+            title: const Text('Restaurar desde Drive'),
+            subtitle: const Text('Recupera tus datos guardados en la nube', style: TextStyle(fontSize: 12, color: Colors.white38)),
+            onTap: () async {
+              try {
+                final driveService = GoogleDriveService();
+                final user = await driveService.signIn();
+                if (user != null) {
+                  final jsonStr = await driveService.downloadBackup();
+                  if (jsonStr != null && context.mounted) {
+                    await context.read<FinanceProvider>().importDataFromJson(jsonStr);
+                    AppTheme.showCustomSnackBar(context, L10n.tr(lang, 'success_import'));
+                  } else {
+                    if (context.mounted) AppTheme.showCustomSnackBar(context, 'No se encontró respaldo en Drive', isError: true);
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) AppTheme.showCustomSnackBar(context, L10n.tr(lang, 'error'), isError: true);
+              }
+            },
+          ),
+
           const SizedBox(height: 32),
           _SectionTitle(title: L10n.tr(lang, 'backup')),
           const SizedBox(height: 8),
@@ -147,6 +218,25 @@ class SettingsView extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 32),
+          _SectionTitle(title: 'Reglas de Distribución'),
+          const SizedBox(height: 16),
+          _RuleSlider(
+            label: 'Necesidades',
+            value: settings.needsPercent,
+            onChanged: (val) => settings.setFinancialRule(val, settings.wantsPercent, 1.0 - val - settings.wantsPercent),
+          ),
+          _RuleSlider(
+            label: 'Deseos',
+            value: settings.wantsPercent,
+            onChanged: (val) => settings.setFinancialRule(settings.needsPercent, val, 1.0 - settings.needsPercent - val),
+          ),
+          _RuleSlider(
+            label: 'Ahorro',
+            value: settings.savingsPercent,
+            onChanged: (val) => settings.setFinancialRule(settings.needsPercent, 1.0 - settings.needsPercent - val, val),
+          ),
+
           const SizedBox(height: 32),
           _SectionTitle(title: L10n.tr(lang, 'tutorial')),
           ListTile(
@@ -236,6 +326,40 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       title.toUpperCase(),
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white38, letterSpacing: 1.5),
+    );
+  }
+}
+
+class _RuleSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final Function(double) onChanged;
+
+  const _RuleSlider({required this.label, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label),
+            Text('${(value * 100).toInt()}%'),
+          ],
+        ),
+        Slider(
+          value: value.clamp(0.0, 1.0),
+          min: 0,
+          max: 1,
+          divisions: 20,
+          onChanged: (val) {
+            if (val >= 0 && val <= 1.0) {
+              onChanged(val);
+            }
+          },
+        ),
+      ],
     );
   }
 }

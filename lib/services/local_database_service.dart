@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'security_service.dart';
 import '../models/transaction_model.dart';
 import '../models/savings_goal_model.dart';
 
@@ -15,6 +16,7 @@ class LocalDatabaseService {
   Database? _database;
   final String _userId = 'local_user';
   final _uuid = const Uuid();
+  final _security = SecurityService();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -25,8 +27,13 @@ class LocalDatabaseService {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'omycash.db');
+    
+    // Obtenemos la llave de cifrado segura
+    final String password = await _security.getEncryptionKey();
+    
     return await openDatabase(
       path,
+      password: password,
       version: 1,
       onCreate: _onCreate,
     );
