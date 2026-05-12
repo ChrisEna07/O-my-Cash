@@ -57,6 +57,14 @@ class NotificationService {
     await _notificationsPlugin.show(id, title, body, notificationDetails);
   }
 
+  Future<void> showGoalCreatedNotification(String goalName) async {
+    await showNotification(
+      id: goalName.hashCode,
+      title: '¡Nueva Meta: $goalName! 🎯',
+      body: 'Recuerda destinar parte de tus ingresos para alcanzar lo que tanto quieres. ¡Tú puedes!',
+    );
+  }
+
   Future<void> scheduleDailyReminder() async {
     await _notificationsPlugin.zonedSchedule(
       999,
@@ -77,10 +85,34 @@ class NotificationService {
     );
   }
 
+  Future<void> scheduleEveningReminder() async {
+    await _notificationsPlugin.zonedSchedule(
+      998,
+      'Gestión Financiera Diaria ??',
+      'No olvides revisar y registrar tus gastos del día en O-myCash.',
+      _nextInstanceOfTime(20), // 8 PM
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'evening_reminder_channel',
+          'Evening Reminders',
+          importance: Importance.low,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
   tz.TZDateTime _nextInstanceOfNineAM() {
+    return _nextInstanceOfTime(9);
+  }
+
+  tz.TZDateTime _nextInstanceOfTime(int hour) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }

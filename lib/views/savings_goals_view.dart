@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/finance_provider.dart';
 import '../models/savings_goal_model.dart';
-import '../services/supabase_service.dart';
 import '../core/app_theme.dart';
 
 class SavingsGoalsView extends StatelessWidget {
@@ -62,7 +61,7 @@ class SavingsGoalsView extends StatelessWidget {
               TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monto objetivo')),
               const SizedBox(height: 12),
               ListTile(
-                title: Text(selectedDeadline == null ? 'Seleccionar Fecha Límite' : 'Meta para: ${DateFormat.yMMMd().format(selectedDeadline!)}'),
+                title: Text(selectedDeadline == null ? 'Fecha Límite (Opcional)' : 'Meta para: ${DateFormat.yMMMd().format(selectedDeadline!)}'),
                 leading: const Icon(LucideIcons.calendar),
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -82,19 +81,32 @@ class SavingsGoalsView extends StatelessWidget {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
             ElevatedButton(
               onPressed: () async {
-                final name = nameController.text;
-                final amount = double.tryParse(amountController.text);
-                if (name.isNotEmpty && amount != null) {
-                  final userId = SupabaseService().currentUser?.id;
-                  if (userId != null) {
-                    await context.read<FinanceProvider>().addGoal(
-                      SavingsGoalModel(userId: userId, goalName: name, targetAmount: amount, deadline: selectedDeadline),
-                    );
-                    if (context.mounted) Navigator.pop(context);
+                final name = nameController.text.trim();
+                final amountStr = amountController.text.replaceAll(',', '.').trim();
+                final amount = double.tryParse(amountStr);
+                
+                if (name.isEmpty) {
+                  AppTheme.showCustomSnackBar(context, 'Por favor, ingresa un nombre.', isError: true);
+                  return;
+                }
+                if (amount == null || amount <= 0) {
+                  AppTheme.showCustomSnackBar(context, 'Monto inválido.', isError: true);
+                  return;
+                }
+
+                try {
+                  await context.read<FinanceProvider>().addGoal(
+                    SavingsGoalModel(userId: 'local_user', goalName: name, targetAmount: amount, deadline: selectedDeadline),
+                  );
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    AppTheme.showCustomSnackBar(context, 'Meta creada con éxito');
                   }
+                } catch (e) {
+                  if (context.mounted) AppTheme.showCustomSnackBar(context, 'Error al crear meta', isError: true);
                 }
               },
-              child: const Text('Crear'),
+              child: const Text('Crear Meta'),
             ),
           ],
         ),
@@ -194,7 +206,7 @@ class _GoalCard extends StatelessWidget {
               await context.read<FinanceProvider>().deleteGoal(goal.id!);
               if (context.mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meta eliminada')));
+                AppTheme.showCustomSnackBar(context, 'Meta eliminada');
               }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent)),
@@ -242,8 +254,9 @@ class _GoalCard extends StatelessWidget {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
             ElevatedButton(
               onPressed: () async {
-                final name = nameController.text;
-                final amount = double.tryParse(amountController.text);
+                final name = nameController.text.trim();
+                final amountStr = amountController.text.replaceAll(',', '.').trim();
+                final amount = double.tryParse(amountStr);
                 if (name.isNotEmpty && amount != null) {
                   await context.read<FinanceProvider>().updateGoal(goal.id!, {
                     'goal_name': name,
@@ -252,8 +265,10 @@ class _GoalCard extends StatelessWidget {
                   });
                   if (context.mounted) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meta actualizada con éxito')));
+                    AppTheme.showCustomSnackBar(context, 'Meta actualizada con éxito');
                   }
+                } else {
+                  AppTheme.showCustomSnackBar(context, 'Datos inválidos', isError: true);
                 }
               },
               child: const Text('Guardar'),

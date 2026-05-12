@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'core/supabase_config.dart';
 import 'core/app_theme.dart';
 import 'providers/finance_provider.dart';
 import 'providers/settings_provider.dart';
-import 'views/login_view.dart';
 import 'views/home_view.dart';
 import 'views/onboarding_view.dart';
 import 'services/notification_service.dart';
@@ -41,21 +38,12 @@ class _OMyCashAppState extends State<OMyCashApp> {
 
   Future<void> _startApp() async {
     try {
-      await Supabase.initialize(
-        url: SupabaseConfig.url,
-        anonKey: SupabaseConfig.anonKey,
-      );
-      
-      try {
-        final notificationService = NotificationService();
-        await notificationService.init();
-        await notificationService.scheduleDailyReminder();
-      } catch (e) {
-        debugPrint('Notification Init Error: $e');
-      }
+      final notificationService = NotificationService();
+      await notificationService.init();
+      await notificationService.scheduleDailyReminder();
+      await notificationService.scheduleEveningReminder();
     } catch (e) {
-      debugPrint('Critical Init Error: $e');
-      rethrow;
+      debugPrint('Notification Init Error: $e');
     }
   }
 
@@ -88,7 +76,7 @@ class _OMyCashAppState extends State<OMyCashApp> {
         if (snapshot.hasError) {
           return MaterialApp(
             home: Scaffold(
-              body: Center(child: Text('Error de conexión: ${snapshot.error}')),
+              body: Center(child: Text('Error de inicialización: ${snapshot.error}')),
             ),
           );
         }
@@ -99,34 +87,8 @@ class _OMyCashAppState extends State<OMyCashApp> {
           theme: AppTheme.getTheme(settings.primaryColor, Brightness.light),
           darkTheme: AppTheme.getTheme(settings.primaryColor, Brightness.dark),
           themeMode: settings.themeMode,
-          home: settings.isFirstTime ? const OnboardingView() : const AuthGate(),
+          home: settings.isFirstTime ? const OnboardingView() : const HomeView(),
         );
-      },
-    );
-  }
-}
-
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final currentSession = Supabase.instance.client.auth.currentSession;
-
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && currentSession == null) {
-           return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        
-        final session = snapshot.hasData ? snapshot.data!.session : currentSession;
-
-        if (session != null) {
-          return const HomeView();
-        } else {
-          return const LoginView();
-        }
       },
     );
   }

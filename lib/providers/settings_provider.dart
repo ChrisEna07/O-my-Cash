@@ -4,14 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsProvider with ChangeNotifier {
   static const String _primaryColorKey = "primary_color";
   static const String _firstTimeKey = "is_first_time";
+  static const String _languageKey = "language_code";
 
   final ThemeMode _themeMode = ThemeMode.dark;
   Color _primaryColor = const Color(0xFF6366F1);
   bool _isFirstTime = true;
+  String _languageCode = 'es';
 
   ThemeMode get themeMode => _themeMode;
   Color get primaryColor => _primaryColor;
   bool get isFirstTime => _isFirstTime;
+  String get languageCode => _languageCode;
 
   SettingsProvider() {
     _loadSettings();
@@ -24,6 +27,7 @@ class SettingsProvider with ChangeNotifier {
     _primaryColor = Color(colorValue);
 
     _isFirstTime = prefs.getBool(_firstTimeKey) ?? true;
+    _languageCode = prefs.getString(_languageKey) ?? 'es';
     
     notifyListeners();
   }
@@ -39,6 +43,13 @@ class SettingsProvider with ChangeNotifier {
     _isFirstTime = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_firstTimeKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setLanguage(String code) async {
+    _languageCode = code;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_languageKey, code);
     notifyListeners();
   }
 }

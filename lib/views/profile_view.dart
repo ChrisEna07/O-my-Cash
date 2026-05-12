@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -29,9 +30,7 @@ class _ProfileViewState extends State<ProfileView> {
       final bytes = await image.readAsBytes();
       if (mounted) {
         await context.read<FinanceProvider>().updateAvatar(bytes, image.name);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto de perfil actualizada con éxito')),
-        );
+        AppTheme.showCustomSnackBar(context, 'Foto de perfil actualizada con éxito');
       }
     }
   }
@@ -58,7 +57,7 @@ class _ProfileViewState extends State<ProfileView> {
                     radius: 50,
                     backgroundColor: Theme.of(context).primaryColor,
                     backgroundImage: provider.avatarUrl.isNotEmpty 
-                        ? NetworkImage(provider.avatarUrl) 
+                        ? FileImage(File(provider.avatarUrl)) as ImageProvider
                         : null,
                     child: provider.avatarUrl.isEmpty 
                         ? const Icon(LucideIcons.user, size: 50, color: Colors.white)
@@ -88,9 +87,10 @@ class _ProfileViewState extends State<ProfileView> {
             ElevatedButton(
               onPressed: () async {
                 await provider.updateUserName(_nameController.text);
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nombre actualizado con éxito')),
-                );
+                FocusScope.of(context).unfocus();
+                if (mounted) {
+                  AppTheme.showCustomSnackBar(context, 'Nombre actualizado con éxito');
+                }
               },
               child: const Text('Guardar Nombre'),
             ),

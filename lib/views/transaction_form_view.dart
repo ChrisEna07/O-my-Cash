@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/finance_provider.dart';
 import '../models/transaction_model.dart';
-import '../services/supabase_service.dart';
 import '../core/app_theme.dart';
 
 class TransactionFormView extends StatefulWidget {
@@ -149,13 +148,15 @@ class _TransactionFormViewState extends State<TransactionFormView> {
   }
 
   Future<void> _saveTransaction() async {
-    final amount = double.tryParse(_amountController.text);
-    if (amount == null || amount <= 0) return;
+    final amountStr = _amountController.text.replaceAll(',', '.').trim();
+    final amount = double.tryParse(amountStr);
+    if (amount == null || amount <= 0) {
+      AppTheme.showCustomSnackBar(context, 'Monto inválido', isError: true);
+      return;
+    }
 
     setState(() => _isLoading = true);
-    final userId = SupabaseService().currentUser?.id;
-    
-    if (userId == null) return;
+    final userId = 'local_user';
 
     final tx = TransactionModel(
       userId: userId,
@@ -172,9 +173,12 @@ class _TransactionFormViewState extends State<TransactionFormView> {
       if (_type == TransactionType.income && _selectedGoalId != null) {
         await context.read<FinanceProvider>().injectToGoal(_selectedGoalId!, amount);
       }
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        AppTheme.showCustomSnackBar(context, 'Transacción registrada con éxito');
+        Navigator.pop(context);
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) AppTheme.showCustomSnackBar(context, 'Error al guardar la transacción', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

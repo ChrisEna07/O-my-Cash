@@ -9,8 +9,6 @@ import 'transaction_form_view.dart';
 import 'savings_goals_view.dart';
 import 'profile_view.dart';
 import 'settings_view.dart';
-import '../services/supabase_service.dart';
-
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -25,26 +23,6 @@ class _HomeViewState extends State<HomeView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FinanceProvider>().fetchData();
     });
-  }
-
-  Future<void> _showAdminDialog(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Admin Reset'),
-        content: const Text('¿Estás seguro de borrar todos los datos?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () async {
-              await context.read<FinanceProvider>().resetAllData();
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Confirmar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -70,16 +48,6 @@ class _HomeViewState extends State<HomeView> {
           IconButton(
             icon: const Icon(LucideIcons.settings, size: 20),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsView())),
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.trash2, size: 20, color: Colors.white24),
-            onPressed: () => _showAdminDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.logOut),
-            onPressed: () async {
-              await SupabaseService().signOut();
-            },
           ),
         ],
       ),
@@ -299,8 +267,10 @@ class _TransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = tx.type == TransactionType.income;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    return GestureDetector(
+      onTap: () => _showOptions(context, tx, context.read<FinanceProvider>()),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -336,6 +306,70 @@ class _TransactionTile extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: isIncome ? Colors.green : Theme.of(context).textTheme.bodyLarge?.color,
             ),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  void _showOptions(BuildContext context, TransactionModel tx, FinanceProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(LucideIcons.edit3),
+              title: const Text('Editar Monto'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditDialog(context, tx, provider);
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.trash2, color: Colors.red),
+              title: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+              onTap: () async {
+                Navigator.pop(context);
+                await provider.deleteTransaction(tx.id!);
+                if (context.mounted) AppTheme.showCustomSnackBar(context, 'Transacción eliminada');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, TransactionModel tx, FinanceProvider provider) {
+    final controller = TextEditingController(text: tx.amount.toString());
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Monto'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Nuevo Monto'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              final amountStr = controller.text.replaceAll(',', '.').trim();
+              final amount = double.tryParse(amountStr);
+              if (amount != null && amount > 0) {
+                await provider.updateTransactionAmount(tx.id!, amount);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  AppTheme.showCustomSnackBar(context, 'Monto actualizado');
+                }
+              } else {
+                AppTheme.showCustomSnackBar(context, 'Monto inválido', isError: true);
+              }
+            },
+            child: const Text('Guardar'),
           ),
         ],
       ),

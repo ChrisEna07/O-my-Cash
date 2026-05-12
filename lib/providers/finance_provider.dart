@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import '../models/savings_goal_model.dart';
-import '../services/supabase_service.dart';
+import '../services/local_database_service.dart';
 import '../services/notification_service.dart';
 
 class FinanceProvider extends ChangeNotifier {
-  final SupabaseService _service = SupabaseService();
+  final LocalDatabaseService _service = LocalDatabaseService();
   
   List<TransactionModel> _transactions = [];
   List<SavingsGoalModel> _goals = [];
@@ -73,8 +73,19 @@ class FinanceProvider extends ChangeNotifier {
     await fetchData();
   }
 
+  Future<void> deleteTransaction(String id) async {
+    await _service.deleteTransaction(id);
+    await fetchData();
+  }
+
+  Future<void> updateTransactionAmount(String id, double amount) async {
+    await _service.updateTransactionAmount(id, amount);
+    await fetchData();
+  }
+
   Future<void> addGoal(SavingsGoalModel goal) async {
     await _service.addSavingsGoal(goal);
+    await NotificationService().showGoalCreatedNotification(goal.goalName);
     await fetchData();
   }
 
@@ -88,10 +99,10 @@ class FinanceProvider extends ChangeNotifier {
     _isLoading = true;
     _safeNotify();
     try {
-      final url = await _service.uploadAvatar(bytes, fileName);
-      if (url != null) {
-        await _service.updateProfile({'avatar_url': url});
-        _avatarUrl = url;
+      final path = await _service.saveAvatarLocal(bytes, fileName);
+      if (path != null) {
+        await _service.updateProfile({'avatar_url': path});
+        _avatarUrl = path;
       }
     } catch (e) {
       debugPrint('Error updating avatar: $e');
@@ -132,6 +143,11 @@ class FinanceProvider extends ChangeNotifier {
 
   Future<void> resetAllData() async {
     await _service.resetUserData();
+    await fetchData();
+  }
+
+  Future<void> importDataFromJson(String json) async {
+    await _service.importDataFromJson(json);
     await fetchData();
   }
 }
